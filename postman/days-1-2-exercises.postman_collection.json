@@ -1,0 +1,583 @@
+{
+  "info": {
+    "_postman_id": "capmation-workshop-days-1-2",
+    "name": "Capmation Workshop — Days 1 & 2",
+    "description": "# Capmation Workshop — API Foundations for PMO\n## Days 1 & 2: Public APIs\n\nColección de ejercicios para los primeros dos días del taller.\n\n**APIs usadas:**\n- **REST Countries** → `https://restcountries.com/v3.1`\n- **JSONPlaceholder** → `https://jsonplaceholder.typicode.com`\n\n**Cómo usar esta colección:**\n1. Ejecutá cada request en orden\n2. Leé el status code antes de mirar el body\n3. Revisá el tab **Test Results** para ver los datos extraídos automáticamente\n4. Completá las tablas del ejercicio con lo que encontrás\n\nNo se necesita autenticación ni configuración previa.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Day 1 — API Foundations + First Call",
+      "description": "Sesión del 15 de abril · 10:00 AM\n\nAPIs usadas: REST Countries + JSONPlaceholder\nConcepto central: qué es una API, anatomía de una URL, request y response, JSON básico.",
+      "item": [
+        {
+          "name": "── Sesión Guiada ──────────────────",
+          "item": [
+            {
+              "name": "1. GET Argentina — Primera llamada",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('✅ Status 200 — La API respondió correctamente', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('📋 Datos extraídos del response', function () {",
+                      "    const json = pm.response.json();",
+                      "    const pais = json[0];",
+                      "    console.log('─────────────────────────────');",
+                      "    console.log('nombre común:  ', pais.name.common);",
+                      "    console.log('nombre oficial:', pais.name.official);",
+                      "    console.log('capital:       ', pais.capital[0]);",
+                      "    console.log('población:     ', pais.population.toLocaleString());",
+                      "    console.log('región:        ', pais.region);",
+                      "    console.log('subregión:     ', pais.subregion);",
+                      "    console.log('─────────────────────────────');",
+                      "    pm.expect(pais.name.common).to.exist;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": { "type": "noauth" },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "https://restcountries.com/v3.1/name/argentina",
+                  "host": ["https://restcountries.com"],
+                  "path": ["v3.1", "name", "argentina"]
+                },
+                "description": "**Primera llamada a una API real.**\n\nObservá:\n- El status code (esquina superior derecha del panel de respuesta)\n- El cuerpo de la respuesta es un **array** (empieza con `[`)\n- Dentro del array, hay un **objeto** con los datos del país\n\nPreguntas para responder:\n- ¿Cuál es el valor de `name.common`?\n- ¿Cuál es el valor de `capital[0]`?\n- ¿Qué tipo de dato es `population`?"
+              },
+              "response": []
+            },
+            {
+              "name": "2. GET Francia — Mismo contrato, distinto recurso",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('✅ Status 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('📋 Datos de Francia', function () {",
+                      "    const pais = pm.response.json()[0];",
+                      "    console.log('nombre:    ', pais.name.common);",
+                      "    console.log('capital:   ', pais.capital[0]);",
+                      "    console.log('población: ', pais.population.toLocaleString());",
+                      "    console.log('moneda:    ', Object.keys(pais.currencies)[0]);",
+                      "    console.log('');",
+                      "    console.log('💡 ¿La estructura del JSON es la misma que con Argentina?');",
+                      "    pm.expect(pais.name.common).to.equal('France');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "https://restcountries.com/v3.1/name/france",
+                  "host": ["https://restcountries.com"],
+                  "path": ["v3.1", "name", "france"]
+                },
+                "description": "**Mismo endpoint, distinto país.**\n\nClave del ejercicio: el **contrato** de la API es siempre el mismo — solo cambia el parámetro en la URL.\n\nObservá que la estructura del JSON es idéntica a la de Argentina. Esto es lo que hace a una API predecible y usable."
+              },
+              "response": []
+            },
+            {
+              "name": "3. GET Todos los países con filtros (query params)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('✅ Status 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('📋 Respuesta filtrada', function () {",
+                      "    const paises = pm.response.json();",
+                      "    console.log('Total de países en la respuesta:', paises.length);",
+                      "    console.log('Campos disponibles en cada objeto:', Object.keys(paises[0]));",
+                      "    console.log('');",
+                      "    console.log('Primer país:', paises[0].name.common, '-', paises[0].region);",
+                      "    console.log('');",
+                      "    console.log('💡 Sin el ?fields= la respuesta tendría ~50 campos por país');",
+                      "    console.log('   Con el filtro solo recibís lo que necesitás → menos datos, más rápido');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "https://restcountries.com/v3.1/all?fields=name,capital,region",
+                  "host": ["https://restcountries.com"],
+                  "path": ["v3.1", "all"],
+                  "query": [
+                    {
+                      "key": "fields",
+                      "value": "name,capital,region",
+                      "description": "Filtra qué campos incluir en la respuesta"
+                    }
+                  ]
+                },
+                "description": "**Query parameters: filtrar la respuesta.**\n\nEl `?fields=name,capital,region` después del URL es un **query parameter**. Le dice a la API: 'solo dame estos campos'.\n\nObservá el tab **Params** — Postman separó el query param automáticamente.\n\nPregunta: ¿cuántos países hay en total en la respuesta?"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "── Ejercicio ──────────────────────",
+          "item": [
+            {
+              "name": "4. GET Usuario 1 — Leer y extraer datos",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('✅ Status 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('📋 Completá la tabla del ejercicio con estos datos', function () {",
+                      "    const u = pm.response.json();",
+                      "    console.log('─── Tabla del Ejercicio ───────────────');",
+                      "    console.log('Nombre completo: ', u.name);",
+                      "    console.log('Email:           ', u.email);",
+                      "    console.log('Ciudad:          ', u.address.city);",
+                      "    console.log('Empresa:         ', u.company.name);",
+                      "    console.log('Sitio web:       ', u.website);",
+                      "    console.log('───────────────────────────────────────');",
+                      "    pm.expect(u.id).to.equal(1);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "https://jsonplaceholder.typicode.com/users/1",
+                  "host": ["https://jsonplaceholder.typicode.com"],
+                  "path": ["users", "1"]
+                },
+                "description": "**Ejercicio Día 1 — Parte 1.**\n\nCompletá esta tabla con los datos del response:\n\n| Campo | Valor |\n|-------|-------|\n| Nombre completo | |\n| Email | |\n| Ciudad | |\n| Empresa | |\n| Sitio web | |\n\n💡 Mirá el tab **Test Results** — los valores ya están extraídos para que los compares."
+              },
+              "response": []
+            },
+            {
+              "name": "5. GET Posts del Usuario 1",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('✅ Status 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('📋 Análisis de los posts', function () {",
+                      "    const posts = pm.response.json();",
+                      "    console.log('Total de posts:', posts.length);",
+                      "    console.log('');",
+                      "    console.log('Título del primer post:', posts[0].title);",
+                      "    console.log('Tipo del campo id:     ', typeof posts[0].id, '→', posts[0].id);",
+                      "    console.log('');",
+                      "    console.log('💡 Esto es un array: [] — múltiples objetos en la respuesta');",
+                      "    console.log('   Para acceder al primero: posts[0]');",
+                      "    console.log('   Para acceder al último:  posts[' + (posts.length - 1) + ']');",
+                      "    pm.expect(posts.length).to.be.greaterThan(0);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "https://jsonplaceholder.typicode.com/users/1/posts",
+                  "host": ["https://jsonplaceholder.typicode.com"],
+                  "path": ["users", "1", "posts"]
+                },
+                "description": "**Ejercicio Día 1 — Parte 2.**\n\nResponder:\n1. ¿Cuántos posts tiene el usuario 1?\n2. ¿Cuál es el título del primer post?\n3. ¿Qué tipo de dato es el campo `id`?\n\n💡 La URL `/users/1/posts` es una ruta **anidada** — recursos relacionados. Muy común en APIs REST."
+              },
+              "response": []
+            },
+            {
+              "name": "6. GET Todos los Todos del Usuario 1 (stretch)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('✅ Status 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('📋 Análisis de tareas (stretch goal)', function () {",
+                      "    const todos = pm.response.json();",
+                      "    const completadas = todos.filter(t => t.completed === true);",
+                      "    const pendientes  = todos.filter(t => t.completed === false);",
+                      "    console.log('Total tareas:      ', todos.length);",
+                      "    console.log('Completadas ✅:    ', completadas.length);",
+                      "    console.log('Pendientes ⏳:     ', pendientes.length);",
+                      "    console.log('');",
+                      "    console.log('Primera tarea pendiente:', pendientes[0]?.title);",
+                      "    pm.expect(todos.length).to.be.greaterThan(0);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "https://jsonplaceholder.typicode.com/users/1/todos",
+                  "host": ["https://jsonplaceholder.typicode.com"],
+                  "path": ["users", "1", "todos"]
+                },
+                "description": "**Stretch Goal — Día 1.**\n\n¿Cuántas tareas están `completed: true`?\n\n💡 El tab Test Results ya tiene la cuenta hecha — verificá tu respuesta."
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Day 2 — HTTP Methods & Data Handling",
+      "description": "Sesión del 16 de abril · 10:00 AM\n\nAPI usada: JSONPlaceholder\nConcepto central: GET vs POST vs PATCH vs DELETE, status codes, JSON anidado.",
+      "item": [
+        {
+          "name": "── Sesión Guiada ──────────────────",
+          "item": [
+            {
+              "name": "7. POST Crear un post — Primera escritura",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('✅ Status 201 Created — El recurso fue creado', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('📋 El servidor devolvió el objeto creado con un ID asignado', function () {",
+                      "    const post = pm.response.json();",
+                      "    console.log('id asignado:', post.id);",
+                      "    console.log('title:      ', post.title);",
+                      "    console.log('userId:     ', post.userId);",
+                      "    console.log('');",
+                      "    console.log('💡 El servidor asignó el id automáticamente');",
+                      "    console.log('   JSONPlaceholder siempre devuelve id:101 (es simulado)');",
+                      "    console.log('   En una API real, cada POST generaría un id único');",
+                      "    pm.expect(post.id).to.exist;",
+                      "    pm.expect(post.title).to.exist;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Mi primer post desde Postman\",\n  \"body\": \"Aprendiendo a usar APIs en el taller de Capmation\",\n  \"userId\": 1\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "https://jsonplaceholder.typicode.com/posts",
+                  "host": ["https://jsonplaceholder.typicode.com"],
+                  "path": ["posts"]
+                },
+                "description": "**Primera request con body.**\n\nDiferencias con GET:\n- Método: `POST` (crear, no leer)\n- Tiene un **body** con los datos a enviar\n- Header `Content-Type: application/json` le dice a la API qué formato le mandás\n- Status de éxito: `201 Created` (no 200)\n\nObservá: el servidor devuelve el objeto creado con el `id` asignado."
+              },
+              "response": []
+            },
+            {
+              "name": "8. GET Post inexistente — Provocar un 404",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('❌ Status 404 — El recurso no existe', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('📋 Body vacío — el 404 confirma que no hay datos', function () {",
+                      "    const body = pm.response.json();",
+                      "    console.log('Body recibido:', JSON.stringify(body));",
+                      "    console.log('');",
+                      "    console.log('💡 Un 404 en producción puede significar:');",
+                      "    console.log('   - El recurso nunca existió');",
+                      "    console.log('   - Fue eliminado');",
+                      "    console.log('   - El ID está mal en la request');",
+                      "    console.log('   Para el PM/BA: registrar como riesgo si puede pasar en el flujo normal');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "https://jsonplaceholder.typicode.com/posts/999",
+                  "host": ["https://jsonplaceholder.typicode.com"],
+                  "path": ["posts", "999"]
+                },
+                "description": "**Provocar un error intencionalmente.**\n\nEl post con id 999 no existe → `404 Not Found`.\n\nObservá:\n- Status code rojo en Postman\n- Body vacío `{}`\n\nPregunta: en tu proyecto, ¿qué pasaría si el sistema intenta obtener un registro que fue eliminado?"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "── Ejercicio ──────────────────────",
+          "item": [
+            {
+              "name": "9. GET Usuario 3 — Leer antes de modificar",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('✅ Status 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('📋 Estado actual del usuario (antes del PATCH)', function () {",
+                      "    const u = pm.response.json();",
+                      "    console.log('─── Estado ANTES del PATCH ─────────');",
+                      "    console.log('id:       ', u.id);",
+                      "    console.log('name:     ', u.name);",
+                      "    console.log('email:    ', u.email);",
+                      "    console.log('phone:    ', u.phone);",
+                      "    console.log('city:     ', u.address.city);",
+                      "    console.log('company:  ', u.company.name);",
+                      "    console.log('────────────────────────────────────');",
+                      "    console.log('💡 Guardá el email actual — vas a cambiarlo en el siguiente request');",
+                      "    pm.environment.set('day2_userId', u.id);",
+                      "    pm.environment.set('day2_emailOriginal', u.email);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "https://jsonplaceholder.typicode.com/users/3",
+                  "host": ["https://jsonplaceholder.typicode.com"],
+                  "path": ["users", "3"]
+                },
+                "description": "**Ejercicio Día 2 — Paso 1 de 4.**\n\nLeé el usuario antes de modificarlo. Completá la tabla:\n\n| Campo | Valor actual |\n|-------|-------------|\n| name | |\n| email | |\n| phone | |\n| address.city | |\n| company.name | |\n\nEste es el estado **antes** del PATCH."
+              },
+              "response": []
+            },
+            {
+              "name": "10. POST Crear usuario propio",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('✅ Status 201 Created', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('📋 Usuario creado', function () {",
+                      "    const u = pm.response.json();",
+                      "    console.log('id asignado:', u.id);",
+                      "    console.log('name:       ', u.name);",
+                      "    console.log('email:      ', u.email);",
+                      "    console.log('');",
+                      "    console.log('💡 Completá la tabla del ejercicio con estos datos');",
+                      "    pm.expect(u.id).to.exist;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Tu nombre aquí\",\n  \"email\": \"tu.email@ejemplo.com\",\n  \"phone\": \"555-1234\",\n  \"username\": \"tu_usuario\",\n  \"website\": \"mi-sitio.com\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "https://jsonplaceholder.typicode.com/users",
+                  "host": ["https://jsonplaceholder.typicode.com"],
+                  "path": ["users"]
+                },
+                "description": "**Ejercicio Día 2 — Paso 2 de 4.**\n\n✏️ **Editá el body** con tus propios datos inventados (name, email, phone).\n\nDespués de enviar, completá:\n- ¿Qué status code recibiste?\n- ¿El servidor te devolvió el objeto con un `id`?\n- ¿Tenía body la request? ¿Y la respuesta?"
+              },
+              "response": []
+            },
+            {
+              "name": "11. PATCH Actualizar solo el email",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('✅ Status 200 — Actualización exitosa', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('📋 Comparar antes y después', function () {",
+                      "    const u = pm.response.json();",
+                      "    const emailAntes = pm.environment.get('day2_emailOriginal') || '(ejecutá el GET primero)';",
+                      "    console.log('─── Comparación del email ──────────');",
+                      "    console.log('ANTES:  ', emailAntes);",
+                      "    console.log('DESPUÉS:', u.email);",
+                      "    console.log('');",
+                      "    console.log('Campos en el body que enviaste: solo email');",
+                      "    console.log('Campos en la respuesta:         el objeto completo');",
+                      "    console.log('');",
+                      "    console.log('💡 PATCH solo envía lo que cambió');",
+                      "    console.log('   PUT requeriría enviar TODOS los campos del usuario');",
+                      "    pm.expect(u.email).to.exist;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"nuevo.email@actualizado.com\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "https://jsonplaceholder.typicode.com/users/3",
+                  "host": ["https://jsonplaceholder.typicode.com"],
+                  "path": ["users", "3"]
+                },
+                "description": "**Ejercicio Día 2 — Paso 3 de 4.**\n\nPATCH: actualizar **solo el email** del usuario 3.\n\nObservá:\n- El body enviado solo tiene un campo (`email`)\n- La respuesta incluye el objeto **completo** (con todos los campos)\n\n✏️ Podés cambiar el email en el body por cualquier valor.\n\n**PATCH vs PUT:**\n- PATCH → solo mandás lo que cambia\n- PUT → tenés que mandar todos los campos"
+              },
+              "response": []
+            },
+            {
+              "name": "12. GET Usuario inexistente — 404 esperado",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('❌ Status 404 — El usuario no existe', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('📋 Resumen del ejercicio', function () {",
+                      "    console.log('─── Tabla Completada ───────────────────────────');",
+                      "    console.log('Leer usuario existente   → GET  → 200 ✅ → con body');",
+                      "    console.log('Crear usuario            → POST → 201 ✅ → con body');",
+                      "    console.log('Actualizar solo email    → PATCH→ 200 ✅ → con body');",
+                      "    console.log('Leer usuario inexistente → GET  → 404 ❌ → sin datos');",
+                      "    console.log('─────────────────────────────────────────────────');",
+                      "    console.log('');",
+                      "    console.log('💡 El DELETE lo vas a probar en el siguiente request');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "https://jsonplaceholder.typicode.com/users/9999",
+                  "host": ["https://jsonplaceholder.typicode.com"],
+                  "path": ["users", "9999"]
+                },
+                "description": "**Ejercicio Día 2 — Paso 4 de 4.**\n\nBuscá un usuario con un id que no existe → `404 Not Found`.\n\nCompletá la tabla del ejercicio:\n\n| Escenario | Método | Status | ¿Tenía body? |\n|-----------|--------|--------|-------------|\n| Leer usuario existente | GET | | |\n| Crear usuario | POST | | |\n| Actualizar email | PATCH | | |\n| Usuario inexistente | GET | | |"
+              },
+              "response": []
+            },
+            {
+              "name": "13. DELETE Post 1 — Stretch goal",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('✅ Status 200 — JSONPlaceholder confirmó el delete', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('📋 Sobre el DELETE', function () {",
+                      "    const body = pm.response.json();",
+                      "    console.log('Body recibido:', JSON.stringify(body));",
+                      "    console.log('');",
+                      "    console.log('💡 JSONPlaceholder devuelve 200 con {} para DELETE');",
+                      "    console.log('   Las APIs reales devuelven 204 No Content (body vacío)');",
+                      "    console.log('   Ambos indican éxito — la diferencia es convención');",
+                      "    console.log('');",
+                      "    console.log('🔑 Para el PM/BA: DELETE es irreversible en la mayoría de APIs');",
+                      "    console.log('   Preguntá siempre: ¿es hard delete o soft delete?');",
+                      "    console.log('   ¿Quién tiene permiso para eliminar? ¿Hay audit log?');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "https://jsonplaceholder.typicode.com/posts/1",
+                  "host": ["https://jsonplaceholder.typicode.com"],
+                  "path": ["posts", "1"]
+                },
+                "description": "**Stretch Goal — Día 2.**\n\nEliminar el post con id 1.\n\nPreguntas para reflexionar:\n- ¿Qué status code recibiste?\n- ¿El body tenía datos?\n- En tu proyecto: ¿un DELETE es reversible? ¿Hay soft delete?\n- ¿Quién debería tener permiso para hacer DELETE en una integración?"
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
