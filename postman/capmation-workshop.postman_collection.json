@@ -1,0 +1,253 @@
+{
+  "info": {
+    "_postman_id": "capmation-workshop-api-collection",
+    "name": "Capmation Workshop API",
+    "description": "# API Foundations for PMO — Capmation Workshop\n\nColección completa para el taller. Los tokens se guardan automáticamente al hacer Login o Refresh.\n\n## Pasos para empezar\n1. Seleccioná el ambiente **Capmation Workshop API — Local**\n2. Ejecutá **Login** con las credenciales de prueba\n3. ¡Los tokens se guardan solos! Ya podés usar el resto de los endpoints.\n\n## Credenciales de prueba\n- admin / Admin123! (rol: admin)\n- usuario1 / Client123! (rol: client)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Flujo de autenticación: login → refresh → logout → me",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    pm.environment.set('accessToken', json.accessToken);",
+                  "    pm.environment.set('refreshToken', json.refreshToken);",
+                  "    pm.environment.set('userId', json.user.id);",
+                  "    console.log('✅ Tokens guardados en el ambiente.');",
+                  "    console.log('   accessToken expira en 15 minutos.');",
+                  "    console.log('   refreshToken expira en 7 días.');",
+                  "} else {",
+                  "    console.log('❌ Login fallido:', pm.response.json().message);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"Admin123!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Autentica al usuario.\n\n**Los tokens se guardan automáticamente** en las variables de entorno `accessToken`, `refreshToken` y `userId`.\n\nCambiar el cuerpo para probar con `usuario1 / Client123!`."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    pm.environment.set('accessToken', json.accessToken);",
+                  "    pm.environment.set('refreshToken', json.refreshToken);",
+                  "    console.log('✅ Tokens rotados y guardados.');",
+                  "    console.log('   El refreshToken anterior fue revocado inmediatamente.');",
+                  "} else {",
+                  "    console.log('❌ Refresh fallido:', pm.response.json().message);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            },
+            "description": "Renueva los tokens usando el refresh token guardado en el ambiente.\n\n**Token rotation**: el `refreshToken` anterior se revoca inmediatamente y se emite uno nuevo. Ambos tokens se actualizan en el ambiente automáticamente."
+          },
+          "response": []
+        },
+        {
+          "name": "Mi Perfil (/me)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Retorna los datos del usuario autenticado según el `accessToken` del ambiente.\n\nNo requiere cuerpo — solo el token en el header `Authorization: Bearer {{accessToken}}`."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Revoca el refresh token en el servidor.\n\nEl `accessToken` sigue siendo válido hasta que expire (máx. 15 min), lo cual es aceptable por su vida útil corta."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "description": "Gestión de usuarios. Algunos endpoints requieren rol admin.",
+      "item": [
+        {
+          "name": "Crear Usuario (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    pm.environment.set('targetUserId', json.id);",
+                  "    console.log('✅ Usuario creado. ID guardado en targetUserId:', json.id);",
+                  "} else {",
+                  "    console.log('❌ Error:', pm.response.json().message);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"nuevo_usuario\",\n  \"email\": \"nuevo@capmation.com\",\n  \"password\": \"Segura123!\",\n  \"role\": \"client\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Crea un nuevo usuario. **Solo accesible para administradores.**\n\nEl ID del nuevo usuario se guarda automáticamente en `targetUserId` para usar en los otros requests."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Usuarios (admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Lista todos los usuarios registrados. **Solo accesible para administradores.**"
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar por Username",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/by-username/admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "by-username", "admin"]
+            },
+            "description": "Busca un usuario por su nombre de usuario. Requiere autenticación.\n\nCambiar `admin` al final de la URL por el username que quieras buscar."
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar Usuario",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"usuario_actualizado\",\n  \"email\": \"actualizado@capmation.com\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{targetUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{targetUserId}}"]
+            },
+            "description": "Actualiza los datos de un usuario.\n\n- **Admin**: puede actualizar cualquier usuario, incluyendo el rol.\n- **Client**: solo puede actualizar su propio perfil (`{{userId}}`), no puede cambiar su rol.\n\nTodos los campos son opcionales — enviar solo los que se quieren cambiar.\n\nUsa `{{targetUserId}}` (guardado al crear usuario) o reemplazarlo por cualquier ID."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Verifica que el servidor esté activo. No requiere autenticación."
+      },
+      "response": []
+    }
+  ]
+}
